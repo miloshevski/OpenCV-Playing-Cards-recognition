@@ -3,24 +3,24 @@
   "W": 250,
   "H": 350,
   "rank_box_xyxy": [
-    7,
-    12,
-    37,
-    61
+    0,
+    0,
+    40,
+    62
   ],
   "suit_box_xyxy": [
-    4,
-    63,
-    40,
-    96
+    0,
+    62,
+    39,
+    101
   ],
   "suggested_params": {
     "roi_w": 0.18,
-    "roi_h": 0.296,
-    "split_y": 0.598,
-    "left_band": 0.513,
+    "roi_h": 0.312,
+    "split_y": 0.568,
+    "left_band": 0.48,
     "max_rel_area": 0.15,
-    "min_area": 18
+    "min_area": 19
   },
-  "suggested_command": "python read_indices_from_out_cards_v2.py --roi_w 0.18 --roi_h 0.296 --split_y 0.598"
+  "suggested_command": "python read_indices_from_out_cards_v2.py --roi_w 0.18 --roi_h 0.312 --split_y 0.568"
 }

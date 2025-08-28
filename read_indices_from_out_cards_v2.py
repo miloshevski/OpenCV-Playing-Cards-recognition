@@ -406,7 +406,7 @@ def process_folder(in_dir: Path, out_json: Path, debug_dir: Optional[Path],
                 cv2.line(vis, (rx1, sy_abs), (rx2, sy_abs), (255,255,0), 2)
                 # left band line
                 lx_abs = dbg["left_band_abs"]
-                cv2.line(vis, (lx_abs, ry1), (lx_abs, ry2), (255,0,255), 2)
+                #cv2.line(vis, (lx_abs, ry1), (lx_abs, ry2), (255,0,255), 2)
                 # candidate boxes if any
                 if dbg.get("rank_box_roi"):
                     rbx, rby, rbw, rbh = dbg["rank_box_roi"]
@@ -414,7 +414,6 @@ def process_folder(in_dir: Path, out_json: Path, debug_dir: Optional[Path],
                 if dbg.get("suit_box_roi"):
                     sbx, sby, sbw, sbh = dbg["suit_box_roi"]
                     cv2.rectangle(vis, (rx1+sbx, ry1+sby), (rx1+sbx+sbw, ry1+sby+sbh), (0,255,0), 3)
-                cv2.putText(vis, "NO_INDEX_DETECTED", (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
                 cv2.imencode('.jpg', vis)[1].tofile(str(debug_dir / f"{p.stem}_layout.jpg"))
             continue
 
@@ -443,7 +442,7 @@ def process_folder(in_dir: Path, out_json: Path, debug_dir: Optional[Path],
             cv2.line(vis, (rx1, sy_abs), (rx2, sy_abs), (255,255,0), 2)
             # left band line
             lx_abs = dbg["left_band_abs"]
-            cv2.line(vis, (lx_abs, ry1), (lx_abs, ry2), (255,0,255), 2)
+            #cv2.line(vis, (lx_abs, ry1), (lx_abs, ry2), (255,0,255), 2)
             # chosen boxes
             draw_box(vis, out["suit_bbox_xyxy"], (0, 200, 0), f"{out['suit']} {out['suit_score']:.2f}")
             draw_box(vis, out["rank_bbox_xyxy"], (255, 0, 0), f"{out['rank']} {out['rank_score']:.2f}")
