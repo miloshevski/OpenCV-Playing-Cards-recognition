@@ -384,7 +384,7 @@ def process_folder(in_dir: Path, out_json: Path, debug_dir: Optional[Path],
                    left_band: float, max_rel_area: float, min_area: int):
     reader = FixedLayoutReader(roi_w=roi_w, roi_h=roi_h, split_y=split_y,
                              min_area=min_area, left_band=left_band, max_rel_area=max_rel_area)
-    print(f"Params -> roi_w={roi_w}, roi_h={roi_h}, split_y={split_y}, left_band={left_band}, max_rel_area={max_rel_area}, min_area={min_area}")
+    # print(f"Params -> roi_w={roi_w}, roi_h={roi_h}, split_y={split_y}, left_band={left_band}, max_rel_area={max_rel_area}, min_area={min_area}")
 
     files = sorted([p for p in in_dir.glob("*") if p.suffix.lower() in {".jpg", ".jpeg", ".png"}])
     results = []
@@ -452,7 +452,7 @@ def process_folder(in_dir: Path, out_json: Path, debug_dir: Optional[Path],
     with open(out_json, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
 
-    print(f"Processed {len(files)} images. Wrote {out_json}")
+    # print(f"Processed {len(files)} images. Wrote {out_json}")
 
 
 def main():

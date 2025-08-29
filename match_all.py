@@ -16,7 +16,8 @@ def binarize(img):
 # === Матч темплејт ===
 def match_templates(input_img, templates_dir):
     input_bin = binarize(input_img)
-    scores = []
+    best_score = -1.0
+    best_name = ""
 
     for tpl_path in sorted(templates_dir.glob("*.png")):
         tpl_img = cv2.imread(str(tpl_path), cv2.IMREAD_GRAYSCALE)
@@ -31,24 +32,36 @@ def match_templates(input_img, templates_dir):
 
         res = cv2.matchTemplate(input_bin, tpl_bin, cv2.TM_CCOEFF_NORMED)
         max_val = res.max() if res.size else -1.0
-        scores.append((tpl_path.name, max_val))
 
-    best_match = max(scores, key=lambda x: x[1])
-    return best_match, scores
+        if max_val > best_score:
+            best_score = max_val
+            best_name = tpl_path.stem  # без .png
+
+    return best_name
 
 # === Главна логика ===
+ranks = {}
+suits = {}
+
 for img_path in sorted(INPUT_DIR.glob("*.png")):
     gray = cv2.imread(str(img_path), cv2.IMREAD_GRAYSCALE)
     if gray is None:
-        print(f"⚠ Не може да се прочита {img_path.name}")
         continue
 
-    is_rank = "rank" in img_path.name
-    templates_dir = RANK_TEMPLATES if is_rank else SUIT_TEMPLATES
+    card_id = "_".join(img_path.stem.split("_")[:2])  # card_01
 
-    best_match, all_scores = match_templates(gray, templates_dir)
+    if "rank" in img_path.name:
+        ranks[card_id] = match_templates(gray, RANK_TEMPLATES)
+    elif "suit" in img_path.name:
+        suits[card_id] = match_templates(gray, SUIT_TEMPLATES)
 
-    print(f"\n🃏 {img_path.name}")
-    for name, score in all_scores:
-        print(f"  {name:<12} → {score:.3f}")
-    print(f"✅ Најдобар match: {best_match[0]} (score: {best_match[1]:.3f})")
+# === Комбинирање и прикажување на картите ===
+cards = []
+for cid in sorted(ranks.keys()):
+    if cid in suits:
+        rank = ranks[cid]
+        suit = suits[cid][0].lower()  # Пр. 'club' → 'c'
+        cards.append(f"{rank}{suit}")
+
+print("\n🂠 Детектирани карти:")
+print(" ".join(cards))

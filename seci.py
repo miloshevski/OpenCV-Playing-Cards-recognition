@@ -40,4 +40,4 @@ for path in sorted(input_dir.glob("*.png")):
     target_size = get_target_size(path.name)
     processed = crop_and_center(gray, target_size)
     cv2.imwrite(str(path), processed)  # overwrite оригинал
-    print(f"✔ Overwritten {path.name} → {processed.shape}")
+    # print(f"✔ Overwritten {path.name} → {processed.shape}")

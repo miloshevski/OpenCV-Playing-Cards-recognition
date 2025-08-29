@@ -179,10 +179,10 @@ def main():
         warped = warp_topdown_portrait(img, q, args.short, args.long)
         cv2.imwrite(str(outdir / f"{args.prefix}_{i:02d}.jpg"), warped)
 
-    print(f"[OK] mask   : {mask_path.resolve()}")
-    print(f"[OK] overlay: {edges_path.resolve()}")
-    print(f"[OK] panel  : {panel_path.resolve()}")
-    print(f"[OK] warped : {outdir.resolve()} (portrait {args.short}x{args.long})")
+    # print(f"[OK] mask   : {mask_path.resolve()}")
+    # print(f"[OK] overlay: {edges_path.resolve()}")
+    # print(f"[OK] panel  : {panel_path.resolve()}")
+    # print(f"[OK] warped : {outdir.resolve()} (portrait {args.short}x{args.long})")
 
 if __name__ == "__main__":
     main()

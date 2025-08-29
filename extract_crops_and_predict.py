@@ -78,4 +78,4 @@ for file in sorted(input_dir.glob("*.jpg")):
     cv2.imwrite(str(output_dir / f"{name_base}_rank.png"), rank_bin_resized)
     cv2.imwrite(str(output_dir / f"{name_base}_suit.png"), suit_bin_resized)
 
-    print(f"{file.name}: Predicted -> {best_rank} {suit_name} (scores: {best_rank_score:.2f}, {suit_score:.2f})")
+    # print(f"{file.name}: Predicted -> {best_rank} {suit_name} (scores: {best_rank_score:.2f}, {suit_score:.2f})")
