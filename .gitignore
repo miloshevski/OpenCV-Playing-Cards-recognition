@@ -1,7 +1,9 @@
-_debug_indices
-crops
-out_cards
+# .gitignore
+_debug_indices/
+crops/
+out_cards/
 edges.jpg
 final_cards.json
 mask.png
-out_cards_indices.jsonpanel.jpg
+out_cards_indices.json
+panel.jpg
