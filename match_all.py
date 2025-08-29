@@ -65,3 +65,5 @@ for cid in sorted(ranks.keys()):
 
 print("\n🂠 Детектирани карти:")
 print(" ".join(cards))
+
+print(cards)

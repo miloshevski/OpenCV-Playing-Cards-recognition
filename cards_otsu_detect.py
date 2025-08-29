@@ -1,4 +1,3 @@
-# cards_otsu_detect.py
 from __future__ import annotations
 import cv2, numpy as np
 from pathlib import Path
@@ -9,37 +8,27 @@ GREEN = (36, 255, 12)
 
 # ---------- geometry ----------
 def order_corners_ccw(pts: np.ndarray) -> np.ndarray:
-    """Order 4 points CCW and start from top-left, robust for any rotation."""
     pts = pts.astype(np.float32).reshape(4, 2)
     c = pts.mean(axis=0)
-    ang = np.arctan2(pts[:, 1] - c[1], pts[:, 0] - c[0])  # [-pi, pi]
-    pts = pts[np.argsort(ang)]  # CCW
-    # rotate so index 0 is top-left (min y then min x)
+    ang = np.arctan2(pts[:, 1] - c[1], pts[:, 0] - c[0])
+    pts = pts[np.argsort(ang)]
     i0 = np.lexsort((pts[:, 0], pts[:, 1]))[0]
     pts = np.roll(pts, -int(i0), axis=0)
     return pts.astype(np.float32)
 
 def otsu_cards_mask(bgr: np.ndarray) -> np.ndarray:
-    """Otsu threshold → ensure cards are white; basic morphology cleanup."""
     gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (3, 3), 0)
     _, m = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    # ensure: CARDS = white (invert if background came out white)
     if m.mean() > 127:
         m = cv2.bitwise_not(m)
     k = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, k, 2)
     m = cv2.morphologyEx(m, cv2.MORPH_OPEN,  k, 1)
-    # cut 1px frame to ignore image borders
     m[0,:]=0; m[-1,:]=0; m[:,0]=0; m[:,-1]=0
     return m
 
 def approx_quad_from_contour(c: np.ndarray) -> np.ndarray:
-    """
-    1) Convex hull (cards are convex)
-    2) Binary-search epsilon for approxPolyDP to get 4 points
-    3) Fallback to minAreaRect if needed
-    """
     hull = cv2.convexHull(c)
     peri = cv2.arcLength(hull, True)
 
@@ -85,17 +74,11 @@ def panel(mask: np.ndarray, overlay: np.ndarray) -> np.ndarray:
     sep = np.zeros((mask.shape[0], 12, 3), dtype=np.uint8)
     return np.hstack([mask_bgr, sep, overlay])
 
-# ---------- always-portrait warp ----------
 def warp_topdown_portrait(img: np.ndarray, quad: np.ndarray, short: int, long: int) -> np.ndarray:
-    """
-    Produce bird's-eye warp **always portrait** (width=short, height=long).
-    If the source quad is wider than tall, rotate the vertex order by 90°.
-    """
     q = quad.astype(np.float32)
     w_src = (np.linalg.norm(q[1]-q[0]) + np.linalg.norm(q[2]-q[3]))/2.0
     h_src = (np.linalg.norm(q[3]-q[0]) + np.linalg.norm(q[2]-q[1]))/2.0
     if w_src > h_src:
-        # rotate TL,TR,BR,BL -> TR,BR,BL,TL
         q = np.array([q[1], q[2], q[3], q[0]], dtype=np.float32)
 
     out_w, out_h = short, long
@@ -108,7 +91,6 @@ def warp_topdown_portrait(img: np.ndarray, quad: np.ndarray, short: int, long: i
         borderValue=(255,255,255)
     )
 
-# ---------- pipeline ----------
 def main():
     ap = argparse.ArgumentParser(description="Cards via Otsu + contours (no Hough), always-portrait warps.")
     ap.add_argument("image", help="input image")
@@ -120,6 +102,7 @@ def main():
     ap.add_argument("--prefix", default="card", help="filename prefix for warped crops")
     ap.add_argument("--short", type=int, default=250, help="portrait width")
     ap.add_argument("--long", type=int, default=350, help="portrait height")
+    ap.add_argument("--save-edges-to", help="folder to save individual edge overlays")
     args = ap.parse_args()
 
     src = Path(args.image)
@@ -129,10 +112,7 @@ def main():
 
     H,W = img.shape[:2]; img_area = H*W
 
-    # 1) Otsu mask
     mask = otsu_cards_mask(img)
-
-    # 2) contours + area/border filter (StackOverflow logic)
     cnts,_ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     good = []
     for c in cnts:
@@ -143,10 +123,8 @@ def main():
     if not good:
         raise SystemExit("[ERR] no contours above area threshold")
 
-    # 3) 4-pt polygons
     quads = [approx_quad_from_contour(c) for c in good]
 
-    # 4) stable numbering: top->bottom then left->right
     centers = np.array([q.mean(axis=0) for q in quads])
     row_eps = np.median([np.linalg.norm(q[3]-q[0]) for q in quads]) * 0.45
     order = np.argsort(centers[:,1])
@@ -162,27 +140,34 @@ def main():
     idxs = [j for row in rows for j in sorted(row, key=lambda k: centers[k,0])]
     quads = [quads[i] for i in idxs]
 
-    # outputs
-    edges_path = Path(args.edges_out) if args.edges_out else src.with_name(src.stem+"_edges.jpg")
+    overlay = draw_overlay(img, quads)
+
+    edges_path = Path(args.edges_out) if args.edges_out else src.with_name("edges.jpg")
     mask_path  = Path(args.mask_out)  if args.mask_out  else src.with_name(src.stem+"_mask.png")
     panel_path = Path(args.panel_out) if args.panel_out else src.with_name(src.stem+"_panel.jpg")
 
-    overlay = draw_overlay(img, quads)
     cv2.imwrite(str(mask_path), mask)
     cv2.imwrite(str(edges_path), overlay)
     cv2.imwrite(str(panel_path), panel(mask, overlay))
 
-    # 5) per-card **portrait** warps
     outdir = Path(args.warp_dir) if args.warp_dir else src.with_name(src.stem+"_cards")
     outdir.mkdir(parents=True, exist_ok=True)
     for i,q in enumerate(quads,1):
         warped = warp_topdown_portrait(img, q, args.short, args.long)
         cv2.imwrite(str(outdir / f"{args.prefix}_{i:02d}.jpg"), warped)
 
-    # print(f"[OK] mask   : {mask_path.resolve()}")
-    # print(f"[OK] overlay: {edges_path.resolve()}")
-    # print(f"[OK] panel  : {panel_path.resolve()}")
-    # print(f"[OK] warped : {outdir.resolve()} (portrait {args.short}x{args.long})")
+    # Clean and save edges
+    if args.save_edges_to:
+        edge_dir = Path(args.save_edges_to)
+        edge_dir.mkdir(parents=True, exist_ok=True)
+        for f in edge_dir.glob("*.jpg"):
+            f.unlink()
+        for f in edge_dir.glob("*.png"):
+            f.unlink()
+        for i, q in enumerate(quads, 1):
+            edge = img.copy()
+            cv2.polylines(edge, [q.astype(np.int32)], True, GREEN, 3)
+            cv2.imwrite(str(edge_dir / f"edge_{i:02d}.jpg"), edge)
 
 if __name__ == "__main__":
     main()
