@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from pathlib import Path
+import json
 
 # === Константи ===
 RANK_TEMPLATES = Path("templates/ranks")
@@ -63,7 +64,5 @@ for cid in sorted(ranks.keys()):
         suit = suits[cid][0].lower()  # Пр. 'club' → 'c'
         cards.append(f"{rank}{suit}")
 
-print("\n🂠 Детектирани карти:")
-print(" ".join(cards))
-
-print(cards)
+with open("final_cards.json", "w", encoding="utf-8") as f:
+    json.dump(cards, f, ensure_ascii=False, indent=2)
