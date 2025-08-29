@@ -12,13 +12,13 @@ def run_pipeline(image_path: str) -> list[str]:
     py = sys.executable
 
     # Исчисти стари резултати
-    for folder in ["out_cards", "crops"]:
+    for folder in ["out_cards", "crops", "_debug_indices"]:
         f = Path(folder)
         if f.exists() and f.is_dir():
             shutil.rmtree(f)
         f.mkdir(parents=True, exist_ok=True)
 
-    print("1️⃣ Детектирање на карти...")
+    # print("1️⃣ Детектирање на карти...")
     subprocess.run([
         py, "cards_otsu_detect.py", image_path,
         "--warp-dir", "out_cards",
@@ -26,7 +26,7 @@ def run_pipeline(image_path: str) -> list[str]:
         "--panel-out", "panel.jpg"
     ], check=True)
 
-    print("\n2️⃣ Читање на индекси (ранг и боја)...")
+    # print("\n2️⃣ Читање на индекси (ранг и боја)...")
     subprocess.run([
         py, "read_indices_from_out_cards_v2.py",
         "--roi_w", "0.18",
@@ -38,13 +38,13 @@ def run_pipeline(image_path: str) -> list[str]:
         "--debug"
     ], check=True)
 
-    print("\n3️⃣ Извлекување binarized crops (rank/suit)...")
+    # print("\n3️⃣ Извлекување binarized crops (rank/suit)...")
     subprocess.run([py, "extract_crops_and_predict.py"], check=True)
 
-    print("\n4️⃣ Сечење и центрирање на crops...")
+    # print("\n4️⃣ Сечење и центрирање на crops...")
     subprocess.run([py, "seci.py"], check=True)
 
-    print("\n5️⃣ Препознавање карти од crops...")
+    # print("\n5️⃣ Препознавање карти од crops...")
     subprocess.run([py, "match_all.py"], check=True)
 
     # Прочитај JSON резултати (пр. од match_all.py)
