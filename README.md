@@ -1,15 +1,46 @@
-python cards_otsu_detect.py test2.jpg --warp-dir out_cards --mask-out mask.png --panel-out panel.jpg za detekcija na karte
+# 🃏 Детекција и читање на карти
 
-# 1) осигурај templates/ (ranks/ + suits/), со твои PNG темплејти
+Овој процес се состои од **3 чекори**:
 
-# 2) стартувај со debug оверлеи:
+---
 
-python read_indices_from_out_cards.py --in_dir out_cards --templates templates --debug
+## 1️⃣ Детектирање на карти
 
-# ако пак не фаќа, пробај:
+```bash
+python cards_otsu_detect.py test.jpg --warp-dir out_cards --mask-out mask.png --panel-out panel.jpg
+```
 
-python read_indices_from_out_cards.py --idx_frac 0.38 --suit_min 0.40 --rank_min 0.40 --debug
+➤ Ги детектира сите карти на слика, ги запишува како поединечни слики во `out_cards/`  
+➤ Дополнително, генерира маска и прегледен панел
 
-$ python read_indices_from_out_cards_v2.py --in_dir out_cards --roi_w 0.18 --roi_h 0.296 --split_y 0.598 --left_band 0.513 --max_rel_area 0.15 --min_area 18 --debug
+---
 
+## 2️⃣ Читање на индекс (ранг + боја)
+
+```bash
+python read_indices_from_out_cards_v2.py \
+  --roi_w 0.18 \
+  --roi_h 0.312 \
+  --split_y 0.568 \
+  --left_band 0.48 \
+  --max_rel_area 0.15 \
+  --min_area 19 \
+  --debug
+```
+
+➤ Ги чита исечените карти од `out_cards/`  
+➤ Автоматски детектира `rank` и `suit`  
+➤ Запишува резултати во `out_cards_indices.json`  
+➤ Генерира дебаг слики во `_debug_indices/`
+
+---
+
+## 3️⃣ Исекување на binarized `rank` и `suit` региони
+
+```bash
 python extract_crops_and_predict.py
+```
+
+➤ Ги вади binarized деловите за `rank` и `suit`  
+➤ Ги зачувува во `crops/`  
+➤ Прикажува предикција за секоја карта

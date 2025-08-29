@@ -408,9 +408,9 @@ def process_folder(in_dir: Path, out_json: Path, debug_dir: Optional[Path],
                 lx_abs = dbg["left_band_abs"]
                 #cv2.line(vis, (lx_abs, ry1), (lx_abs, ry2), (255,0,255), 2)
                 # candidate boxes if any
-                if dbg.get("rank_box_roi"):
-                    rbx, rby, rbw, rbh = dbg["rank_box_roi"]
-                    cv2.rectangle(vis, (rx1+rbx, ry1+rby), (rx1+rbx+rbw, ry1+rby+rbh), (255,0,0), 3)
+                # if dbg.get("rank_box_roi"):
+                #     rbx, rby, rbw, rbh = dbg["rank_box_roi"]
+                #     cv2.rectangle(vis, (rx1+rbx, ry1+rby), (rx1+rbx+rbw, ry1+rby+rbh), (255,0,0), 3)
                 if dbg.get("suit_box_roi"):
                     sbx, sby, sbw, sbh = dbg["suit_box_roi"]
                     cv2.rectangle(vis, (rx1+sbx, ry1+sby), (rx1+sbx+sbw, ry1+sby+sbh), (0,255,0), 3)
